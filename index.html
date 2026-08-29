@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Serra do Cipó — Diário de Expedição</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pine:#1C2E22;
+    --pine-2:#233A2B;
+    --parchment:#F3ECDA;
+    --parchment-2:#EAE0C7;
+    --clay:#B3491F;
+    --clay-2:#8f3a18;
+    --moss:#57724A;
+    --amber:#D89B3C;
+    --ink:#24231F;
+    --ink-soft:#54503f;
+    --trail:#8C7A5B;
+    --line: rgba(140,122,91,0.35);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--parchment);
+    color:var(--ink);
+    font-family:'Work Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Fraunces',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit;}
+
+  /* ---------- sticky next-up bar ---------- */
+  #nextbar{
+    position:sticky; top:0; z-index:50;
+    background:var(--pine);
+    color:var(--parchment);
+    padding:10px 18px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; flex-wrap:wrap;
+    border-bottom:2px solid var(--clay);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+  }
+  #nextbar .label{color:var(--amber); letter-spacing:.08em; text-transform:uppercase; font-size:11px; margin-right:8px;}
+  #nextbar .title{font-weight:600; color:#fff;}
+  #nextbar .count{color:var(--amber); font-weight:600;}
+  #nextbar button{
+    background:transparent; border:1px solid var(--amber); color:var(--amber);
+    font-family:'IBM Plex Mono',monospace; font-size:12px; padding:5px 10px; border-radius:3px; cursor:pointer;
+  }
+  #nextbar button:hover{background:var(--amber); color:var(--pine);}
+  #nextbar button:focus-visible, a:focus-visible, .stop:focus-visible{outline:2px solid var(--amber); outline-offset:2px;}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    background:var(--pine);
+    color:var(--parchment);
+    padding:64px 24px 84px;
+    overflow:hidden;
+  }
+  .hero .eyebrow{
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.15em; text-transform:uppercase;
+    font-size:12px; color:var(--amber); margin-bottom:14px;
+  }
+  .hero h1{
+    font-size:clamp(40px,8vw,84px); line-height:.95; margin:0 0 18px; font-weight:700;
+  }
+  .hero h1 em{font-style:italic; font-weight:500; color:var(--amber);}
+  .hero p{max-width:520px; color:var(--parchment-2); font-size:16px; line-height:1.55;}
+  .contour{position:absolute; inset:0; opacity:.25; pointer-events:none;}
+
+  /* ---------- base de operações ---------- */
+  .base{
+    max-width:920px; margin:-48px auto 0; padding:0 24px 40px; position:relative; z-index:2;
+  }
+  .base-card{
+    background:var(--parchment); border:1px solid var(--line); border-radius:6px;
+    padding:26px 28px; box-shadow:0 12px 30px rgba(28,46,34,.18);
+  }
+  .base-card .kicker{font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--clay);}
+  .base-card h2{margin:6px 0 4px; font-size:26px;}
+  .base-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px 24px; margin-top:16px; font-size:14px;}
+  .base-grid .k{color:var(--ink-soft); font-family:'IBM Plex Mono',monospace; font-size:12px; text-transform:uppercase; letter-spacing:.05em;}
+  .base-grid .v{margin-bottom:10px;}
+  .btnrow{margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;}
+  .btn{
+    display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:12.5px;
+    padding:9px 14px; border-radius:3px; text-decoration:none; border:1px solid var(--ink);
+    letter-spacing:.02em;
+  }
+  .btn.primary{background:var(--clay); border-color:var(--clay); color:#fff;}
+  .btn.primary:hover{background:var(--clay-2);}
+  .btn.ghost{background:transparent; color:var(--ink);}
+  .btn.ghost:hover{background:var(--ink); color:var(--parchment);}
+
+  /* ---------- days ---------- */
+  .log{max-width:920px; margin:0 auto; padding:20px 24px 100px; position:relative;}
+  .day{position:relative; padding-left:54px; margin-bottom:56px;}
+  .day::before{
+    content:""; position:absolute; left:20px; top:6px; bottom:-56px; width:2px;
+    background:repeating-linear-gradient(to bottom, var(--trail) 0 6px, transparent 6px 12px);
+  }
+  .day:last-child::before{display:none;}
+  .day-num{
+    position:absolute; left:0; top:0; width:42px; height:42px; border-radius:50%;
+    background:var(--pine); color:var(--amber); display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; border:2px solid var(--amber);
+  }
+  .day-head{margin-bottom:18px;}
+  .day-head .date{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--clay); letter-spacing:.08em; text-transform:uppercase;}
+  .day-head h2{margin:2px 0 0; font-size:24px;}
+
+  .stop{
+    background:#fff; border:1px solid var(--line); border-radius:5px; padding:16px 18px; margin-bottom:12px;
+    display:grid; grid-template-columns:84px 1fr; gap:14px; align-items:start;
+  }
+  .stop.plan-b{border-style:dashed; opacity:.85;}
+  .stop .time{font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--clay); font-weight:600; padding-top:2px;}
+  .stop h3{margin:0 0 4px; font-size:17px;}
+  .stop p{margin:0 0 10px; font-size:14px; color:var(--ink-soft); line-height:1.5;}
+  .stop .meta{display:flex; gap:14px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--moss); margin-bottom:10px;}
+  .stop .links{display:flex; gap:8px; flex-wrap:wrap;}
+  .stop .links a{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:5px 9px; border:1px solid var(--ink); border-radius:3px; text-decoration:none;
+  }
+  .stop .links a:hover{background:var(--ink); color:var(--parchment);}
+  .tag{display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:.06em; text-transform:uppercase; background:var(--parchment-2); color:var(--ink-soft); padding:2px 7px; border-radius:3px; margin-bottom:8px;}
+  .tag.alt{background:#f1e2d9; color:var(--clay);}
+  .stop.current{border-color:var(--amber); box-shadow:0 0 0 2px var(--amber) inset;}
+
+  /* photo block */
+  .photo{grid-column:1/-1; margin-top:2px;}
+  .photo img{
+    width:100%; height:220px; object-fit:cover; border-radius:4px; display:block;
+    filter:saturate(1.05) contrast(1.02);
+  }
+  .photo .credit{
+    font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-soft);
+    margin-top:5px; letter-spacing:.02em;
+  }
+  .photo .credit a{color:var(--moss); text-decoration:none; border-bottom:1px dotted var(--moss);}
+
+  .hero-photo{
+    position:absolute; inset:0; z-index:0;
+    background-size:cover; background-position:center 65%;
+  }
+  .hero-photo::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(28,46,34,.22) 0%, rgba(28,46,34,.5) 75%, var(--pine) 100%);
+  }
+  .hero > *:not(.hero-photo){position:relative; z-index:1;}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--pine); color:var(--parchment-2); padding:40px 24px 60px;}
+  .foot-wrap{max-width:920px; margin:0 auto;}
+  footer h3{color:var(--amber); font-size:15px; margin-bottom:10px;}
+  footer ul{margin:0 0 26px; padding-left:18px; font-size:13.5px; line-height:1.7;}
+  footer .contact{font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--parchment-2);}
+
+  @media (max-width:600px){
+    .base-grid{grid-template-columns:1fr;}
+    .stop{grid-template-columns:1fr;}
+    .stop .time{padding-top:0;}
+  }
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+</style>
+</head>
+<body>
+
+<div id="nextbar">
+  <div><span class="label">Próxima parada</span><span class="title" id="nb-title">calculando…</span></div>
+  <div class="count" id="nb-count"></div>
+  <button id="nb-notify">ativar lembretes</button>
+</div>
+
+<section class="hero">
+  <div class="hero-photo" style="background-image:url('https://commons.wikimedia.org/wiki/Special:FilePath/Parque%20Nacional%20da%20Serra%20do%20Cip%C3%B3%20Priscila%20Rezende%20(01).jpg?width=1600');"></div>
+  <svg class="contour" viewBox="0 0 800 300" preserveAspectRatio="none">
+    <path d="M0,120 Q200,60 400,120 T800,110" fill="none" stroke="#D89B3C" stroke-width="1"/>
+    <path d="M0,160 Q220,220 420,170 T800,180" fill="none" stroke="#D89B3C" stroke-width="1"/>
+    <path d="M0,220 Q180,180 380,230 T800,220" fill="none" stroke="#D89B3C" stroke-width="1"/>
+  </svg>
+  <div class="eyebrow">Diário de expedição · 30 dez — 02 jan</div>
+  <h1>Serra do <em>Cipó</em></h1>
+  <p>Guia de campo da virada: trilha do Travessão, churrasco na base, Cachoeira Grande e a volta pra casa. Horários, rotas e links, tudo num lugar só.</p>
+</section>
+
+<div class="base">
+  <div class="base-card">
+    <div class="kicker">Base de operações</div>
+    <h2>Chalé Viva La Vida</h2>
+    <div class="photo" style="margin:14px 0 4px;">
+      <img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/MG-010%20em%20Cardeal%20Mota,%20Santana%20do%20Riacho%20MG.jpg?width=900" alt="Estrada de acesso ao Distrito de Serra do Cipó">
+      <div class="credit">Distrito de Serra do Cipó (Cardeal Mota) · <a href="https://commons.wikimedia.org/wiki/File:MG-010_em_Cardeal_Mota,_Santana_do_Riacho_MG.jpg" target="_blank" rel="noopener">Wikimedia Commons, CC BY-SA</a></div>
+    </div>
+    <div class="base-grid">
+      <div><div class="k">Check-in</div><div class="v">30/12/2026</div></div>
+      <div><div class="k">Check-out</div><div class="v">02/01/2027</div></div>
+      <div><div class="k">Distância — Véu da Noiva</div><div class="v">800 m</div></div>
+      <div><div class="k">Distância — centro comercial</div><div class="v">5 min</div></div>
+      <div><div class="k">Distância — Cachoeira Grande</div><div class="v">10 min</div></div>
+      <div><div class="k">Distância — BH</div><div class="v">≈100 km / 2h</div></div>
+    </div>
+    <div class="btnrow">
+      <a class="btn primary" href="https://www.airbnb.com.br/rooms/1253002690546196191" target="_blank" rel="noopener">ver reserva no airbnb ↗</a>
+      <a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=Distrito+Serra+do+Cip%C3%B3+MG" target="_blank" rel="noopener">abrir no maps ↗</a>
+    </div>
+  </div>
+</div>
+
+<div class="log">
+
+  <div class="day" data-day="1">
+    <div class="day-num">01</div>
+    <div class="day-head">
+      <div class="date">Quarta · 30/12/2026</div>
+      <h2>Chegada</h2>
+    </div>
+
+    <div class="stop" data-start="2026-12-30T14:00" data-title="Viagem BH → Chalé">
+      <div class="time mono">14:00</div>
+      <div>
+        <span class="tag">deslocamento</span>
+        <h3>BH → Chalé Viva La Vida</h3>
+        <p>≈100 km, ≈2h de carro. Vésperas de feriado costumam pesar no trânsito — sair um pouco mais cedo se possível.</p>
+        <div class="meta"><span>100 km</span><span>2h ao volante</span></div>
+        <div class="links"><a href="https://www.google.com/maps/dir/?api=1&destination=Distrito+Serra+do+Cip%C3%B3+MG" target="_blank" rel="noopener">rota no maps ↗</a></div>
+      </div>
+    </div>
+
+    <div class="stop" data-start="2026-12-30T17:00" data-title="Compras para o churrasco">
+      <div class="time mono">17:00</div>
+      <div>
+        <span class="tag">logística</span>
+        <h3>Comércio local — carne, carvão, bebida</h3>
+        <p>Aproveitar a chegada pra resolver o churrasco de amanhã e reconhecer o centrinho, a 5 min do chalé.</p>
+        <div class="links"><a href="https://www.google.com/maps/search/?api=1&query=comercio+Distrito+Serra+do+Cip%C3%B3" target="_blank" rel="noopener">ver no maps ↗</a></div>
+      </div>
+    </div>
+
+    <div class="stop" data-start="2026-12-30T20:00" data-title="Descanso">
+      <div class="time mono">20:00</div>
+      <div>
+        <span class="tag">descanso</span>
+        <h3>Jantar leve e dormir cedo</h3>
+        <p>Amanhã a saída é de madrugada — vale já deixar mochila, água e lanternas separados hoje à noite.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="day" data-day="2">
+    <div class="day-num">02</div>
+    <div class="day-head">
+      <div class="date">Quinta · 31/12/2026 — Réveillon</div>
+      <h2>Trilha do Travessão + virada na base</h2>
+    </div>
+
+    <div class="stop" data-start="2026-12-31T06:00" data-title="Saída para a trilha">
+      <div class="time mono">06:00</div>
+      <div>
+        <span class="tag">trilha</span>
+        <h3>Chalé → Pousada Duas Pontes</h3>
+        <p>≈11 km de carro até o ponto de acesso à trilha, na altura da Pousada Duas Pontes, km 114 da MG-010.</p>
+        <div class="meta"><span>11 km</span></div>
+        <div class="links"><a href="https://www.google.com/maps/search/?api=1&query=Pousada+Duas+Pontes+Serra+do+Cip%C3%B3" target="_blank" rel="noopener">local no maps ↗</a></div>
+      </div>
+    </div>
+
+    <div class="stop" data-start="2026-12-31T07:00" data-title="Trilha do Vale do Travessão">
+      <div class="time mono">07:00 – 14:00</div>
+      <div>
+        <span class="tag">trilha · dia inteiro</span>
+        <h3>Vale / Mirante do Travessão</h3>
+        <p>17–19 km ida e volta, campo aberto, pouca sombra. Passa pela Cachoeira do Espelho e pinturas rupestres antes do mirante. Seguir o track pra não perder tempo nas bifurcações.</p>
+        <div class="meta"><span>17–19 km</span><span>≈7h</span><span>sem guia, com GPS</span></div>
+        <div class="links">
+          <a href="https://pt.wikiloc.com/trilhas-trekking/pousada-duas-pontes-vale-do-travessao-serra-do-cipo-138172001" target="_blank" rel="noopener">track no wikiloc ↗</a>
+        </div>
+        <div class="photo">
+          <img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Canion%20das%20Bandeirinhas%20-%20PARNA%20da%20Serra%20do%20Cip%C3%B3%20-%20Minas%20Gerais%20-%20Brasil.JPG?width=900" alt="Paredões rochosos e campos rupestres na Serra do Cipó">
+          <div class="credit">Paisagem de campo rupestre no PARNA Serra do Cipó · <a href="https://commons.wikimedia.org/wiki/File:Canion_das_Bandeirinhas_-_PARNA_da_Serra_do_Cip%C3%B3_-_Minas_Gerais_-_Brasil.JPG" target="_blank" rel="noopener">Wikimedia Commons, CC BY-SA</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stop" data-start="2026-12-31T14:30" data-title="Volta e descanso">
+      <div class="time mono">14:30 – 18:00</div>
+      <div>
+        <span class="tag">descanso</span>
+        <h3>Banho, hidratação, pés pra cima</h3>
+        <p>Dia puxado — reservar essas horas de verdade antes da virada.</p>
+      </div>
+    </div>
+
+    <div class="stop" data-start="2026-12-31T19:00" data-title="Churrasco e virada">
+      <div class="time mono">19:00 →</div>
+      <div>
+        <span class="tag alt">réveillon</span>
+        <h3>Churrasco no chalé + fogos à meia-noite</h3>
+        <p>Confirmar com o anfitrião se dá pra ver os fogos do Distrito da varanda — senão, são só 5 min a pé até o centro.</p>
+      </div>
+    </div>
+
+    <div class="stop plan-b">
+      <div class="time mono">plano B</div>
+      <div>
+        <span class="tag alt">se chover</span>
+        <h3>Cânion das Bandeirinhas + Cachoeira da Farofa</h3>
+        <p>Trilha alternativa dentro do parque (Portaria Areias, 12 km ida e volta) se o Travessão estiver fechado ou o tempo virar. Confirmar com o ICMBio antes de sair.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="day" data-day="3">
+    <div class="day-num">03</div>
+    <div class="day-head">
+      <div class="date">Sexta · 01/01/2027</div>
+      <h2>Recuperação e Cachoeira Grande</h2>
+    </div>
+
+    <div class="stop" data-start="2027-01-01T10:00" data-title="Manhã livre">
+      <div class="time mono">até 12:00</div>
+      <div>
+        <span class="tag">descanso</span>
+        <h3>Dormir até tarde</h3>
+        <p>Sem compromisso — o corpo pede depois do dia anterior.</p>
+      </div>
+    </div>
+
+    <div class="stop" data-start="2027-01-01T12:00" data-title="Cachoeira Grande">
+      <div class="time mono">12:00 – 16:00</div>
+      <div>
+        <span class="tag">cachoeira particular</span>
+        <h3>Cachoeira Grande</h3>
+        <p>10 min do chalé, acesso fácil por estrada de terra (~2 km), poço na parte baixa e na alta. Cartão-postal da Serra do Cipó — baixo esforço, ideal pra hoje.</p>
+        <div class="meta"><span>10 min de carro</span><span>entrada paga</span></div>
+        <div class="links"><a href="https://www.google.com/maps/search/?api=1&query=Cachoeira+Grande+Serra+do+Cip%C3%B3" target="_blank" rel="noopener">local no maps ↗</a></div>
+        <div class="photo">
+          <img loading="lazy" src="https://commons.wikimedia.org/wiki/Special:FilePath/Cachoeira%20Grande%20(Serra%20do%20Cip%C3%B3%20-%20MG).jpg?width=900" alt="Cachoeira Grande, na Serra do Cipó">
+          <div class="credit">Cachoeira Grande · <a href="https://commons.wikimedia.org/wiki/File:Cachoeira_Grande_(Serra_do_Cip%C3%B3_-_MG).jpg" target="_blank" rel="noopener">Wikimedia Commons, CC BY-SA</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stop" data-start="2027-01-01T19:30" data-title="Noite no Distrito">
+      <div class="time mono">19:30</div>
+      <div>
+        <span class="tag">jantar</span>
+        <h3>Jantar no Distrito</h3>
+        <p>Clima de pós-réveillon ainda no ar — bom momento pra explorar o comércio com calma.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="day" data-day="4">
+    <div class="day-num">04</div>
+    <div class="day-head">
+      <div class="date">Sábado · 02/01/2027</div>
+      <h2>Volta</h2>
+    </div>
+
+    <div class="stop" data-start="2027-01-02T09:00" data-title="Checkout">
+      <div class="time mono">09:00</div>
+      <div>
+        <span class="tag">logística</span>
+        <h3>Café da manhã e checkout</h3>
+        <p>Sem pressa — a estrada de volta é curta.</p>
+      </div>
+    </div>
+
+    <div class="stop" data-start="2027-01-02T13:00" data-title="Volta para BH">
+      <div class="time mono">13:00</div>
+      <div>
+        <span class="tag">deslocamento</span>
+        <h3>Chalé → BH</h3>
+        <p>Sair antes do fim de tarde evita o fluxo mais pesado de volta de feriado.</p>
+        <div class="links"><a href="https://www.google.com/maps/dir/?api=1&destination=Belo+Horizonte" target="_blank" rel="noopener">rota no maps ↗</a></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="foot-wrap">
+    <h3>Antes de sair</h3>
+    <ul>
+      <li>Ligar pro ICMBio — (31) 3718-7151 — pra confirmar se a trilha do Travessão / Portaria Areias está liberada (chuva de verão fecha trechos sem aviso).</li>
+      <li>Bota com boa aderência — relatos de descida escorregadia com chuva fina.</li>
+      <li>Levar bastante água — trecho do Travessão é campo aberto, sem sombra.</li>
+      <li>Confirmar com o anfitrião do chalé se dá pra ver os fogos da varanda.</li>
+      <li>Carregado: power bank, lanterna, protetor solar.</li>
+    </ul>
+    <div class="contact">Este guia é uso pessoal — horários calculados no fuso de Brasília a partir do relógio do seu navegador.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var stops = Array.prototype.slice.call(document.querySelectorAll('.stop[data-start]')).map(function(el){
+    return { el: el, start: new Date(el.getAttribute('data-start')), title: el.getAttribute('data-title') };
+  }).sort(function(a,b){ return a.start - b.start; });
+
+  var nbTitle = document.getElementById('nb-title');
+  var nbCount = document.getElementById('nb-count');
+  var nbBtn = document.getElementById('nb-notify');
+  var notifyEnabled = false;
+  var scheduled = [];
+
+  function fmtDelta(ms){
+    if(ms <= 0) return 'agora';
+    var s = Math.floor(ms/1000);
+    var d = Math.floor(s/86400); s -= d*86400;
+    var h = Math.floor(s/3600); s -= h*3600;
+    var m = Math.floor(s/60);
+    var parts = [];
+    if(d>0) parts.push(d+'d');
+    if(h>0||d>0) parts.push(h+'h');
+    parts.push(m+'m');
+    return 'em ' + parts.join(' ');
+  }
+
+  function update(){
+    var now = new Date();
+    stops.forEach(function(s){ s.el.classList.remove('current'); });
+    var next = stops.find(function(s){ return s.start > now; });
+    if(!next){
+      nbTitle.textContent = 'viagem concluída';
+      nbCount.textContent = '';
+      return;
+    }
+    next.el.classList.add('current');
+    nbTitle.textContent = next.title;
+    nbCount.textContent = fmtDelta(next.start - now);
+  }
+
+  function scheduleNotifications(){
+    scheduled.forEach(clearTimeout);
+    scheduled = [];
+    var now = new Date();
+    stops.forEach(function(s){
+      var fireAt = new Date(s.start.getTime() - 15*60000); // 15 min antes
+      var delay = fireAt - now;
+      if(delay > 0 && delay < 2147483000){
+        scheduled.push(setTimeout(function(){
+          if(Notification.permission === 'granted'){
+            new Notification('Daqui a 15 min: ' + s.title);
+          }
+        }, delay));
+      }
+    });
+  }
+
+  nbBtn.addEventListener('click', function(){
+    if(!('Notification' in window)){
+      nbBtn.textContent = 'não suportado neste navegador';
+      return;
+    }
+    Notification.requestPermission().then(function(perm){
+      if(perm === 'granted'){
+        notifyEnabled = true;
+        nbBtn.textContent = 'lembretes ativos (aba aberta)';
+        scheduleNotifications();
+      } else {
+        nbBtn.textContent = 'permissão negada';
+      }
+    });
+  });
+
+  update();
+  setInterval(update, 30000);
+})();
+</script>
+
+</body>
+</html>
